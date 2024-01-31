@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <script src="https://cdn.bootcss.com/jquery/1.10.2/jquery.min.js"></script>
+    <title></title>
+    <meta name="csrf-token" content="PfNQNOnv5NrGsinsN7rZtfYRWxGb7uIGfxAzfuY2">
+    <style>
+        #result img {
+            display: block;
+        }
+
+        pre {
+            white-space: pre-wrap; /*css-3*/
+            white-space: -moz-pre-wrap; /*Mozilla,since1999*/
+            white-space: -pre-wrap; /*Opera4-6*/
+            white-space: -o-pre-wrap; /*Opera7*/
+            word-wrap: break-word; /*InternetExplorer5.5+*/
+        }
+    </style>
+</head>
+<body>
+<div style="display: flex; margin-bottom: 20px">
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input style="float: left" id="file" type="file" name="file"/>
+        <button type="button" id="upload" style="float: left">开始上传</button>
+        <button type="button" id="download" style="float: left">下载模板</button>
+        <button type="button" id="preview" style="float: left">预览</button>
+    </form>
+</div>
+<div>使用方法:
+    <ul>
+        <li>选择 docx 文件,点击上传,左侧显示上传文件的原始内容,右侧显示解析后的试题</li>
+        <li>左侧修改内容,点击预览,右侧显示重新解析的内容</li>
+    </ul>
+</div>
+<div style="display: flex">
+    <div style="width: 33.3%">
+        <div id="content">
+
+        </div>
+    </div>
+    <div style="margin:0 20px; padding: 20px; width: 33.3%; border: 1px solid">
+        <pre style="overflow: hidden;" id="array">
+
+        </pre>
+    </div>
+    <div style="margin:0 20px; padding: 20px; width: 33.3%; border: 1px solid">
+        <div id="result"></div>
+    </div>
+
+</div>
+
+</body>
+<script src="./ckeditor/ckeditor.js"></script>
+<script type="text/javascript">
+    $(function () {
+        $("#download").click(function () {
+            window.open("/download/exam.docx")
+        });
+        $("#preview").click(function () {
+            $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                type: 'put',
+                url: "./exam-preview.php",
+                data: {
+                    raw: CKEDITOR.instances.content.getData()
+                },
+                cache: false,
+                dataType: "json"
+            }).success(function (res) {
+                $("#result").html(res.result)
+                $("#array").html(res.code)
+            }).error(function () {
+                alert("预览失败");
+            });
+        });
+
+        CKEDITOR.replace('content', {"lang": "zh-CN", "height": 500});
+        $("#upload").click(function () {
+            var formData = new FormData($('#uploadForm')[0]);
+            $.ajax({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                type: 'post',
+                url: "./exam-upload.php",
+                data: formData,
+                cache: false,
+                processData: false,
+                contentType: false,
+                dataType: "json"
+            }).success(function (res) {
+                CKEDITOR.instances.content.setData(res.raw)
+                $("#result").html(res.result)
+                $("#array").html(res.code)
+            }).error(function (e) {
+                alert(e.responseText);
+            });
+        });
+    });
+</script>
+</html>
