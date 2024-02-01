@@ -21,7 +21,7 @@ class WordParser
 {
 
     private $debug = false;
-    private $warns = [];
+    private $warning = [];
     /**
      * @var PhpWord
      */
@@ -54,7 +54,7 @@ class WordParser
         return $content;
     }
 
-    private function getContentAsHtmlWithStyle()
+    private function getContentAsHtmlWithStyle(): string
     {
         try {
             $xmlWriter = IOFactory::createWriter($this->word, "HTML");
@@ -68,7 +68,7 @@ class WordParser
     }
 
 
-    private function getTag($style)
+    private function getTag($style): string
     {
         switch ($style) {
             case "1":
@@ -138,18 +138,18 @@ class WordParser
                     "tag" => $tag = $this->getTag($style['name'] ?? ''),
                     "content" => implode('', $text)
                 ];
-                $this->log("识别到TextRun");
+                $this->log("识别到TextRun:" . $element->getElementId());
             } else if ($element instanceof Table) {
-                $this->log("识别到Table");
+                $this->log("识别到Table:" . $element->getElementId());
                 $this->table2html($element);
             } else if ($element instanceof TextBreak) {
-                $this->log("识别到TextBreak");
+                $this->log("识别到TextBreak:" . $element->getElementId());
                 $return[$i] = $item = [
                     "tag" => 'p',
                     "content" => ""
                 ];
             } else {
-                $this->warns[] = "忽略了" . get_class($element);
+                $this->warning[] = "忽略了" . get_class($element);
             }
         }
         return new Outline($return);
@@ -159,18 +159,15 @@ class WordParser
     {
         $return = '';
         if ($node instanceof Text) {
-//            $return .= "[Text]";
             $return .= $node->getText();
         } else if ($node instanceof Image) {
-//            $return .= "[Image]";
             $return .= $this->image2html($node);
         } else if ($node instanceof TextRun) {
-//            $return .= "[TextRun]";
             foreach ($node->getElements() as $ele) {
                 $return .= $this->element2html($ele);
             }
         } else {
-            $this->warns[] = $warn = sprintf("未处理的节点:%s", get_class($node));
+            $this->warning[] = $warn = sprintf("未处理的节点:%s", get_class($node));
         }
         return $return;
     }
@@ -193,7 +190,17 @@ class WordParser
      */
     private function table2html(Table $element)
     {
-        $this->warns[] = "忽略了Table";
+        $this->warning[] = "忽略了Table";
         $this->log("跳过表格解析" . get_class($element));
+    }
+
+    public function hasError(): bool
+    {
+        return count($this->warning) > 0;
+    }
+
+    public function getError(): array
+    {
+        return $this->warning;
     }
 }

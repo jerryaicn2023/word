@@ -12,7 +12,7 @@ CKEDITOR.editorConfig = function( config ) {
 
 	config.toolbar = [
 		{ name: 'document', items: [ 'Source'] },
-
+		{ name: 'insert', items: [ 'Image', 'Table', 'HorizontalRule', 'Smiley', 'SpecialChar', 'PageBreak', 'Iframe' ] },
 		{ name: 'styles', items: [ 'Format'] }
 	];
 

@@ -15,7 +15,7 @@ class ExamParser
     }
 
 
-    private function getLines($html)
+    private function getLines($html): array
     {
         if (!preg_match_all("@<p>([\S\s]*?)</p>@", $html, $matches)) {
             return [];
@@ -30,11 +30,8 @@ class ExamParser
         }
     }
 
-    /**
-     * @param $html
-     * @return Exam
-     */
-    public function parseFromHtml($html)
+
+    public function parseFromHtml($html): Exam
     {
         $this->log(mb_substr($html, 0, 200));
         $html = preg_replace('/style="[^"]+"/', "", $html);
@@ -43,7 +40,6 @@ class ExamParser
         $html = preg_replace("/<span[\s]*>/", "", $html);
         $html = preg_replace("|</span>|", "", $html);
         $this->log(mb_substr($html, 0, 200));
-        //Log::log("info", $html);
         $lastType = "";
         $lastAction = "";
         $types = ["单选题", "多选题", "判断题", "问答题"];
@@ -77,7 +73,7 @@ class ExamParser
                     $item["type"] = $lastType;
                 }
                 $lastAction = "question";
-            } elseif (preg_match("/^[a-zA-Z]{1,}./", $line)) {
+            } elseif (preg_match("/^[a-zA-Z]+./", $line)) {
                 $this->log("发现选项:" . mb_substr($line, 0, 30));
                 $item["options"][] = $line;
             } elseif (mb_strpos($line, "答案") === 0) {

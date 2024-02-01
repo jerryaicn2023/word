@@ -13,7 +13,7 @@ class Exam
         $this->data = $data;
     }
 
-    function toArray()
+    function toArray(): array
     {
         return $this->data;
     }
@@ -22,7 +22,7 @@ class Exam
 
     }
 
-    function toHtml()
+    function toHtml(): string
     {
 
         $html = "<article>";

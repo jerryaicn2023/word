@@ -22,6 +22,6 @@ if (!isset($_FILES['file']['tmp_name']) || !$_FILES['file']['tmp_name']) {
         "code" => print_r($outline->getOutline(), true),
         "result" => $outline->toHtml(),
         "raw" => $outline->toHtml(),
-        "warning" => $outline->hasError()?$outline->getError():[]
+        "warning" => $wordParser->hasError()?$wordParser->getError():[]
     ]);
 }
