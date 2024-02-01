@@ -21,6 +21,42 @@
         .warning {
             color: red;
         }
+
+        h1 {
+            font-size: 48px;
+        }
+
+        h2 {
+            font-size: 44px;
+        }
+
+        h3 {
+            font-size: 40px;
+        }
+
+        h4 {
+            font-size: 36px;
+        }
+
+        h5 {
+            font-size: 32px;
+        }
+
+        h6 {
+            font-size: 28px;
+        }
+
+        h7 {
+            font-size: 24px;
+        }
+
+        h8 {
+            font-size: 20px;
+        }
+
+        p {
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
@@ -56,6 +92,8 @@
 <script src="./ckeditor/ckeditor.js"></script>
 <script type="text/javascript">
     $(function () {
+        CKEDITOR.replace('content', {"lang": "zh-CN", "height": 500});
+
         function warn(warning) {
             var li = "";
             for (var i = 0; i < warning.length; i++) {
@@ -65,7 +103,7 @@
         }
 
         $("#download").click(function () {
-            window.open("/download/exam.docx")
+            window.open("/download/outline.docx")
         });
         $("#preview").click(function () {
             $.ajax({
@@ -73,7 +111,7 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
                 type: 'put',
-                url: "./exam-preview.php",
+                url: "./outline-preview.php",
                 data: {
                     raw: CKEDITOR.instances.content.getData()
                 },
@@ -88,7 +126,6 @@
             });
         });
 
-        CKEDITOR.replace('content', {"lang": "zh-CN", "height": 500});
         $("#upload").click(function () {
             var formData = new FormData($('#uploadForm')[0]);
             $.ajax({
@@ -96,7 +133,7 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
                 type: 'post',
-                url: "./exam-upload.php",
+                url: "./outline-upload.php",
                 data: formData,
                 cache: false,
                 processData: false,

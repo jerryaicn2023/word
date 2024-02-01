@@ -7,6 +7,7 @@ namespace Jerryaicn\Word;
 class ExamParser
 {
     private $debug = false;
+    private $warning = [];
 
     function setDebug($val)
     {
@@ -45,7 +46,7 @@ class ExamParser
         //Log::log("info", $html);
         $lastType = "";
         $lastAction = "";
-        $types = ["单选题", "多选题", "问答题"];
+        $types = ["单选题", "多选题", "判断题", "问答题"];
         $rows = [];
         $item = [];
         $brCount = 0;
@@ -69,10 +70,9 @@ class ExamParser
             } elseif (in_array($line, $types)) {
                 $this->log("发现type:" . mb_substr($line, 0, 30));
                 $lastType = $item['type'] = $line;
-            } elseif (preg_match("/^[0-9]{1,}./", $line)) {
+            } elseif ("*" === substr($line, 0, 1)) {
                 $this->log("发现question:" . mb_substr($line, 0, 30));
-
-                $item["question"] = $line;
+                $item["question"] = substr($line, 1);
                 if (!isset($item["type"])) {
                     $item["type"] = $lastType;
                 }
@@ -115,5 +115,15 @@ class ExamParser
             }
         }
         return new Exam($rows);
+    }
+
+    public function hasError(): bool
+    {
+        return count($this->warning) > 0;
+    }
+
+    public function getError(): array
+    {
+        return $this->warning;
     }
 }

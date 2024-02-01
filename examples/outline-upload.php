@@ -1,7 +1,5 @@
 <?php
 header('Content-Type: application/json; charset=utf-8');
-
-use Jerryaicn\Word\ExamParser;
 use Jerryaicn\Word\WordParser;
 
 require "../vendor/autoload.php";
@@ -16,17 +14,14 @@ if (!isset($_FILES['file']['tmp_name']) || !$_FILES['file']['tmp_name']) {
         ]
     );
 } else {
-
     $wordParser = new WordParser($_FILES['file']['tmp_name']);
     $wordParser->setDebug(true);
-    $examParser = new ExamParser();
-    $examParser->setDebug(true);
-    $raw = $wordParser->getContentAsHtml();
-    $result = $examParser->parseFromHtml($raw);
+    $outline = $wordParser->parse();
 
     echo json_encode([
-        "code" => print_r($result->toArray(), true),
-        "result" => $result->toHtml(),
-        "raw" => $raw
+        "code" => print_r($outline->getOutline(), true),
+        "result" => $outline->toHtml(),
+        "raw" => $outline->toHtml(),
+        "warning" => $outline->hasError()?$outline->getError():[]
     ]);
 }

@@ -22,11 +22,9 @@ if (!isset($_PUT["raw"])) {
     );
     exit(0);
 }
-$examParser = new ExamParser();
-$examParser->setDebug(true);
-$result = $examParser->parseFromHtml($_PUT["raw"]);
+$outline = \Jerryaicn\Word\Outline::loadFromHtml($_PUT["raw"]);
 echo json_encode([
-    "code" => print_r($result->toArray(), true),
-    "result" => $result->toHtml(),
-    "warning" => $examParser->hasError() ? $examParser->getError() : []
+    "code" => print_r($outline->getOutline(), true),
+    "result" => $outline->toHtml(),
+    "warning" => $outline->hasError() ? $outline->getError() : []
 ]);
