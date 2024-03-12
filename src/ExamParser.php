@@ -33,13 +33,15 @@ class ExamParser
 
     public function parseFromHtml($html): Exam
     {
-        $this->log(mb_substr($html, 0, 200));
+        $this->log("收到原始内容：" . mb_substr($html, 0, 1000));
         $html = preg_replace('/style="[^"]+"/', "", $html);
         $html = preg_replace("/style='[^']+'/", "", $html);
         $html = preg_replace("/lang='[^']+'/", "", $html);
         $html = preg_replace("/<span[\s]*>/", "", $html);
         $html = preg_replace("|</span>|", "", $html);
-        $this->log(mb_substr($html, 0, 200));
+        $html = str_replace("<br />", "</p><p>", $html);
+        $html .= '<p>&nbsp;</p>';
+        $this->log("格式化后的内容：" . mb_substr($html, 0, 1000));
         $lastType = "";
         $lastAction = "";
         $types = ["单选题", "多选题", "判断题", "问答题"];
