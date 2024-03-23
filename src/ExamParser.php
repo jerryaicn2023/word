@@ -42,6 +42,7 @@ class ExamParser
         $html = preg_replace("/<span[\s]*>/", "", $html);
         $html = preg_replace("|</span>|", "", $html);
         $html = str_replace("<br />", "</p><p>", $html);
+        $html = str_replace("<p >", "<p>", $html);
         $html .= '<p>&nbsp;</p>';
         $this->log("格式化后的内容：" . mb_substr($html, 0, 1000));
         $lastType = "";
@@ -99,8 +100,10 @@ class ExamParser
                 $lastAction = "analysis";
                 $exploded = explode("：", $line);
                 $item["analysis"] = $exploded[1] ?? "";
-                $exploded = explode(":", $line);
-                $item["analysis"] = $exploded[1] ?? "";
+                if (!$item["analysis"]) {
+                    $exploded = explode(":", $line);
+                    $item["analysis"] = $exploded[1] ?? "";
+                }
             } else {
                 switch ($lastAction) {
                     case "answer":
