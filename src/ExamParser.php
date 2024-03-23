@@ -4,6 +4,8 @@
 namespace Jerryaicn\Word;
 
 
+use function Couchbase\defaultDecoder;
+
 class ExamParser
 {
     private $debug = false;
@@ -75,17 +77,24 @@ class ExamParser
                     $item["type"] = $lastType;
                 }
                 $lastAction = "question";
+            } elseif (preg_match('/^\d+\.[\[](单选题|多选题)[\]].*/', $line, $matches)) {
+                $this->log("发现question和type:" . mb_substr($line, 0, 30));
+                $item["type"] = $lastType = $matches[1];
+                $item["question"] = str_replace('[' . $item["type"] . ']', '', $line);
+                $lastAction = "question";
             } elseif (preg_match("/^[a-zA-Z]+./", $line)) {
                 $this->log("发现选项:" . mb_substr($line, 0, 30));
                 $item["options"][] = $line;
-            } elseif (mb_strpos($line, "答案") === 0) {
+            } elseif
+            (mb_strpos($line, "答案") === 0) {
                 $lastAction = "answer";
                 $this->log("发现answer:" . mb_substr($line, 0, 30));
                 $exploded = explode("：", $line);
                 $item["answer"] = $exploded[1] ?? "";
                 $exploded = explode(":", $line);
                 $item["answer"] .= $exploded[1] ?? "";
-            } elseif (mb_stripos($line, "解析") === 0) {
+            } elseif
+            (mb_stripos($line, "解析") === 0) {
                 $this->log("发现analysis:" . mb_substr($line, 0, 30));
                 $lastAction = "analysis";
                 $exploded = explode("：", $line);
@@ -100,7 +109,7 @@ class ExamParser
                         break;
                     case "analysis":
                         $this->log("追加到analysis:" . mb_substr($line, 0, 30));
-                        $item["analysis"] .= $line;
+                        isset($item['analysis']) ? $item["analysis"] .= $line : $item["analysis"] = $line;
                         break;
                     case "question":
                         $this->log("追加到question:" . mb_substr($line, 0, 30));
@@ -115,12 +124,14 @@ class ExamParser
         return new Exam($rows);
     }
 
-    public function hasError(): bool
+    public
+    function hasError(): bool
     {
         return count($this->warning) > 0;
     }
 
-    public function getError(): array
+    public
+    function getError(): array
     {
         return $this->warning;
     }
