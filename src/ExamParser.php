@@ -3,9 +3,6 @@
 
 namespace Jerryaicn\Word;
 
-
-use function Couchbase\defaultDecoder;
-
 class ExamParser
 {
     private $debug = false;
@@ -45,40 +42,26 @@ class ExamParser
         $html = str_replace("<p >", "<p>", $html);
         $html .= '<p>&nbsp;</p>';
         $this->log("格式化后的内容：" . mb_substr($html, 0, 1000));
-        $lastType = "";
         $lastAction = "";
-        $types = ["单选题", "多选题", "判断题", "问答题"];
         $rows = [];
         $item = [];
-        $brCount = 0;
         foreach ($this->getLines($html) as $line) {
             $line = trim($line);
             if (in_array($line, ['&nbsp;', ''])) {
-                $brCount++;
-                if (!key_exists("analysis", $item)) {
-                    $this->log("空行做为题目的结束标志,仅应该出现在解析之后");
+                if (empty($item) || !isset($item['type']) || !isset($item['question'])) {
+                    $this->log("在没有解析到题型和题干这前，所有的空行都忽略");
                 }
-                if (!key_exists("question", $item)) {
-                    $this->log("空行之前没有发现题干,无效的空行");
-                } elseif (!key_exists("answer", $item)) {
-                    $this->log("空行之前没有发现答案,无效的空行");
-                } else {
-                    $this->log("下一道题");
+                if (!empty($item)) {
+                    $this->log("最后一题");
                     $rows[] = $item;
                     $item = [];
-                    $brCount = 0;
                 }
-            } elseif (in_array($line, $types)) {
-                $this->log("发现type:" . mb_substr($line, 0, 30));
-                $lastType = $item['type'] = $line;
-            } elseif ("*" === substr($line, 0, 1)) {
-                $this->log("发现question:" . mb_substr($line, 0, 30));
-                $item["question"] = substr($line, 1);
-                if (!isset($item["type"])) {
-                    $item["type"] = $lastType;
+            } elseif (preg_match('/^\d+\.[\[](单选题|多选题|判断题|问答题|简答题)[\]].*/', $line, $matches)) {
+                if (!empty($item)) {
+                    $this->log("结束上一题");
+                    $rows[] = $item;
+                    $item = [];
                 }
-                $lastAction = "question";
-            } elseif (preg_match('/^\d+\.[\[](单选题|多选题)[\]].*/', $line, $matches)) {
                 $this->log("发现question和type:" . mb_substr($line, 0, 30));
                 $item["type"] = $lastType = $matches[1];
                 $item["question"] = str_replace('[' . $item["type"] . ']', '', $line);

@@ -8,6 +8,7 @@ class Exam
 {
 
     private $data = [];
+
     function __construct($data)
     {
         $this->data = $data;
@@ -18,27 +19,32 @@ class Exam
         return $this->data;
     }
 
-    function hasError(){
+    function hasError()
+    {
 
     }
 
     function toHtml(): string
     {
 
-        $html = "<article>";
+        $html = "<div>";
         foreach ($this->data as $item) {
-            $html .= sprintf("<h3>(%s)%s</h3>", $item["type"], $item["question"]);
+            $html .= "<div class='item'>";
+            $html .= sprintf("<div class='title'><small class='type'>%s</small>%s</div>", $item["type"] ?? 'ERROR', $item["question"] ?? 'ERROR');
             if (isset($item["options"])) {
                 foreach ($item["options"] as $option) {
-                    $html .= sprintf("<div>%s</div>", $option);
+                    if ($item['type'] == '多选题') {
+                        $html .= sprintf("<div><input type='checkbox' %s>%s</div>", false !== stripos(($item["answer"] ?? 'ERROR'), substr($option, 0, 1)) ? 'checked' : '', $option);
+                    } else {
+                        $html .= sprintf("<div><input type='radio' %s>%s</div>", substr($option, 0, 1) == ($item["answer"] ?? 'ERROR') ? 'checked' : '', $option);
+                    }
                 }
-
             }
-
-            $html .= sprintf("<h4>答案</h4><p>%s</p>", $item["answer"]);
-            $html .= sprintf("<h4>解析</h4><p>%s</p>", $item["analysis"]);
+            $html .= sprintf("<div class='label'>答案</div><div class='answer'>%s</div>", $item["answer"] ?? 'ERROR');
+            $html .= sprintf("<div class='label'>解析</div><div class='analysis'>%s</div>", $item["analysis"] ?? 'ERROR');
+            $html .= "</div>";
         }
-        $html .= "<article>";
+        $html .= "</div>";
         return $html;
     }
 }
