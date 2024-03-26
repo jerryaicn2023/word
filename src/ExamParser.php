@@ -45,20 +45,45 @@ class ExamParser
         $lastAction = "";
         $rows = [];
         $item = [];
-        foreach ($this->getLines($html) as $line) {
+        $itemCount = 0;
+        $lines = $this->getLines($html);
+        $total = count($lines);
+        foreach ($lines as $i => $line) {
             $line = trim($line);
             if (in_array($line, ['&nbsp;', ''])) {
                 if (empty($item) || !isset($item['type']) || !isset($item['question'])) {
                     $this->log("在没有解析到题型和题干这前，所有的空行都忽略");
                 }
-                if (!empty($item)) {
-                    $this->log("最后一题");
-                    $rows[] = $item;
-                    $item = [];
+                if ($total - $i == 1) {
+                    if (!empty($item)) {
+                        $this->log("最后一题");
+                        $rows[] = $item;
+                        if (!isset($item['type'])
+                            || !isset($item['question'])
+                            || !isset($item['answer'])
+                            || !isset($item['analysis'])
+                        ) {
+                            $warn = "最后一道题解析不全，{$i}请检查{$total}";
+                            $this->warning[] = $warn;
+                            $this->log($warn);
+                        }
+                        $item = [];
+                    }
                 }
+
             } elseif (preg_match('/^\d+\.[\[](单选题|多选题|判断题|问答题|简答题)[\]].*/', $line, $matches)) {
                 if (!empty($item)) {
                     $this->log("结束上一题");
+                    $itemCount++;
+                    if (!isset($item['type'])
+                        || !isset($item['question'])
+                        || !isset($item['answer'])
+                        || !isset($item['analysis'])
+                    ) {
+                        $warn = (isset($item['question']) ? $item['question'] : "第{$itemCount}道试题") . "解析不全，请检查";
+                        $this->warning[] = $warn;
+                        $this->log($warn);
+                    }
                     $rows[] = $item;
                     $item = [];
                 }

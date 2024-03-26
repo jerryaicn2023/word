@@ -27,6 +27,7 @@ if (!isset($_FILES['file']['tmp_name']) || !$_FILES['file']['tmp_name']) {
     echo json_encode([
         "code" => print_r($result->toArray(), true),
         "result" => $result->toHtml(),
-        "raw" => $raw
+        "raw" => $raw,
+        "warning" => $examParser->hasError() ? $examParser->getError() : []
     ]);
 }
