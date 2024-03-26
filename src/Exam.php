@@ -27,10 +27,37 @@ class Exam
     function toHtml(): string
     {
 
-        $html = "<div>";
+        $html = "<style>
+        .question {
+            border: 1px solid #639;
+            padding: 10px;
+            margin: 10px
+        }
+
+        .question-title {
+            font-weight: 700
+        }
+
+        .question-type {
+            border: 1px solid #00f;
+            font-size: 92%;
+        }
+
+        .question-label {
+            font-weight: 700
+        }
+
+        .question-answer {
+
+        }
+
+        .question-analysis {
+
+        }
+    </style><div>";
         foreach ($this->data as $item) {
-            $html .= "<div class='item'>";
-            $html .= sprintf("<div class='title'><small class='type'>%s</small>%s</div>", $item["type"] ?? 'ERROR', $item["question"] ?? 'ERROR');
+            $html .= "<div class='question'>";
+            $html .= sprintf("<div class='question-title'><small class='question-type'>%s</small>%s</div>", $item["type"] ?? 'ERROR', $item["question"] ?? 'ERROR');
             if (isset($item["options"])) {
                 foreach ($item["options"] as $option) {
                     if ($item['type'] == '多选题') {
@@ -40,8 +67,8 @@ class Exam
                     }
                 }
             }
-            $html .= sprintf("<div class='label'>答案</div><div class='answer'>%s</div>", $item["answer"] ?? 'ERROR');
-            $html .= sprintf("<div class='label'>解析</div><div class='analysis'>%s</div>", $item["analysis"] ?? 'ERROR');
+            $html .= sprintf("<div class='question-label'>答案</div><div class='question-answer'>%s</div>", $item["answer"] ?? 'ERROR');
+            $html .= sprintf("<div class='question-label'>解析</div><div class='question-analysis'>%s</div>", $item["analysis"] ?? 'ERROR');
             $html .= "</div>";
         }
         $html .= "</div>";
