@@ -61,9 +61,8 @@ class ExamParser
                         if (!isset($item['type'])
                             || !isset($item['question'])
                             || !isset($item['answer'])
-                            || !isset($item['analysis'])
                         ) {
-                            $warn = "最后一道题解析不全，{$i}请检查{$total}";
+                            $warn = "最后一道题解析不全，请检查";
                             $this->warning[] = $warn;
                             $this->log($warn);
                         }
@@ -80,7 +79,7 @@ class ExamParser
                         || !isset($item['answer'])
                         || !isset($item['analysis'])
                     ) {
-                        $warn = (isset($item['question']) ? $item['question'] : "第{$itemCount}道试题") . "解析不全，请检查";
+                        $warn = (isset($item['question']) ? mb_substr($item['question'],0,100) : "第{$itemCount}道试题") . "解析不全，请检查";
                         $this->warning[] = $warn;
                         $this->log($warn);
                     }
@@ -115,16 +114,25 @@ class ExamParser
             } else {
                 switch ($lastAction) {
                     case "answer":
-                        $item["answer"] .= $line;
                         $this->log("追加到answer:" . mb_substr($line, 0, 30));
+                        if (!$this->wrapped($item["question"])) {
+                            $item["answer"] = $this->wrap($item["answer"]);
+                        }
+                        $item["answer"] .= $this->wrap($line);
                         break;
                     case "analysis":
                         $this->log("追加到analysis:" . mb_substr($line, 0, 30));
-                        isset($item['analysis']) ? $item["analysis"] .= $line : $item["analysis"] = $line;
+                        if (!$this->wrapped($item["analysis"])) {
+                            $item["analysis"] = $this->wrap($item["analysis"]);
+                        }
+                        $item["analysis"] .= $this->wrap($line);
                         break;
                     case "question":
                         $this->log("追加到question:" . mb_substr($line, 0, 30));
-                        $item["question"] .= $line;
+                        if (!$this->wrapped($item["question"])) {
+                            $item["question"] = $this->wrap($item["question"]);
+                        }
+                        $item["question"] .= $this->wrap($line);
                         break;
                     default:
                         $this->log("发现无效内容:" . mb_substr($line, 0, 30));
@@ -135,14 +143,22 @@ class ExamParser
         return new Exam($rows);
     }
 
-    public
-    function hasError(): bool
+    private function wrapped($string)
+    {
+        return substr($string, 0, 3) != '<p>';
+    }
+
+    private function wrap($string)
+    {
+        return sprintf('<p>%s</p>', $string);
+    }
+
+    public function hasError(): bool
     {
         return count($this->warning) > 0;
     }
 
-    public
-    function getError(): array
+    public function getError(): array
     {
         return $this->warning;
     }
