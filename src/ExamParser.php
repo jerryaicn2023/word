@@ -29,6 +29,25 @@ class ExamParser
         }
     }
 
+    private function checkError($item, $itemCount)
+    {
+        if (!isset($item['type'])) {
+            $warn = sprintf('第%s道试题的试题类型为空', $itemCount);
+            $this->warning[] = $warn;
+            $this->log($warn);
+        }
+        if (!isset($item['question'])) {
+            $warn = sprintf('第%s道试题的题干为空', $itemCount);
+            $this->warning[] = $warn;
+            $this->log($warn);
+        }
+        if (!isset($item['answer'])) {
+            $warn = sprintf('第%s道试题的答案为空', $itemCount);
+            $this->warning[] = $warn;
+            $this->log($warn);
+        }
+    }
+
 
     public function parseFromHtml($html): Exam
     {
@@ -45,7 +64,7 @@ class ExamParser
         $lastAction = "";
         $rows = [];
         $item = [];
-        $itemCount = 0;
+        $itemCount = 1;
         $lines = $this->getLines($html);
         $total = count($lines);
         foreach ($lines as $i => $line) {
@@ -57,32 +76,16 @@ class ExamParser
                 if ($total - $i == 1) {
                     if (!empty($item)) {
                         $this->log("最后一题");
+                        $this->checkError($item, $itemCount);
                         $rows[] = $item;
-                        if (!isset($item['type'])
-                            || !isset($item['question'])
-                            || !isset($item['answer'])
-                        ) {
-                            $warn = "最后一道题解析不全，请检查";
-                            $this->warning[] = $warn;
-                            $this->log($warn);
-                        }
                         $item = [];
                     }
                 }
-
             } elseif (preg_match('/^\d+\.[\[](单选题|多选题|判断题|问答题|简答题)[\]].*/', $line, $matches)) {
                 if (!empty($item)) {
                     $this->log("结束上一题");
+                    $this->checkError($item, $itemCount);
                     $itemCount++;
-                    if (!isset($item['type'])
-                        || !isset($item['question'])
-                        || !isset($item['answer'])
-                        || !isset($item['analysis'])
-                    ) {
-                        $warn = (isset($item['question']) ? mb_substr($item['question'],0,100) : "第{$itemCount}道试题") . "解析不全，请检查";
-                        $this->warning[] = $warn;
-                        $this->log($warn);
-                    }
                     $rows[] = $item;
                     $item = [];
                 }
@@ -93,16 +96,14 @@ class ExamParser
             } elseif (preg_match("/^[a-zA-Z]+./", $line)) {
                 $this->log("发现选项:" . mb_substr($line, 0, 30));
                 $item["options"][] = $line;
-            } elseif
-            (mb_strpos($line, "答案") === 0) {
+            } elseif (mb_strpos($line, "答案") === 0) {
                 $lastAction = "answer";
                 $this->log("发现answer:" . mb_substr($line, 0, 30));
                 $exploded = explode("：", $line);
                 $item["answer"] = $exploded[1] ?? "";
                 $exploded = explode(":", $line);
                 $item["answer"] .= $exploded[1] ?? "";
-            } elseif
-            (mb_stripos($line, "解析") === 0) {
+            } elseif (mb_stripos($line, "解析") === 0) {
                 $this->log("发现analysis:" . mb_substr($line, 0, 30));
                 $lastAction = "analysis";
                 $exploded = explode("：", $line);
